@@ -18,12 +18,10 @@
   "dependencies": {
     "apollo-fetch": "^0.6.0",
     "babel-runtime": "^6.26.0",
-    "canvas-prebuilt": "^2.0.0-alpha.14",
     "commander": "^2.9.0",
     "debug": "^3.0.1",
     "env-ci": "^2.1.0",
     "isomorphic-fetch": "^2.2.1",
-    "jsdom": "^11.5.1",
     "jsonfile": "^4.0.0",
     "localtunnel": "^1.8.3",
     "node-ask": "^1.0.1",
@@ -31,7 +29,8 @@
   },
   "peerDependencies": {
     "@storybook/addons": "3.* || 4.*",
-    "@storybook/core": "3.* || 4.*"
+    "@storybook/core": "3.* || 4.*",
+    "jsdom": "11.*"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
