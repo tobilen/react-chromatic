@@ -17,6 +17,7 @@
   "dependencies": {
     "apollo-fetch": "^0.6.0",
     "babel-runtime": "^6.26.0",
+    "canvas-prebuilt": "^2.0.0-alpha.14",
     "commander": "^2.9.0",
     "debug": "^3.0.1",
     "denodeify": "^1.2.1",
