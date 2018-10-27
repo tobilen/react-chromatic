@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/assets/storybook-addon-v2.js"],"names":[],"mappings":";;AAAA;;;;AACA;;;;;;AAEA","file":"storybook-addon-v2.js","sourcesContent":["import chromatic from '../client';\nimport storybookRuntime from './runtimes/storybook-v2';\n\nchromatic(storybookRuntime);\n"]}

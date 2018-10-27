@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.executeTest = undefined;
+
 var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
@@ -9,23 +14,65 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
-var _keys = require('babel-runtime/core-js/object/keys');
-
-var _keys2 = _interopRequireDefault(_keys);
-
 var _extends2 = require('babel-runtime/helpers/extends');
 
 var _extends3 = _interopRequireDefault(_extends2);
 
-var _commander = require('commander');
+var executeTest = exports.executeTest = function () {
+  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(argv) {
+    var exitCode;
+    return _regenerator2.default.wrap(function _callee$(_context) {
+      while (1) {
+        switch (_context.prev = _context.next) {
+          case 0:
+            _context.prev = 0;
+            _context.next = 3;
+            return (0, _tester2.default)(parseArgv(argv));
 
-var _commander2 = _interopRequireDefault(_commander);
+          case 3:
+            exitCode = _context.sent;
+
+            process.exit(exitCode);
+            _context.next = 11;
+            break;
+
+          case 7:
+            _context.prev = 7;
+            _context.t0 = _context['catch'](0);
+
+            // eslint-disable-next-line no-console
+            console.error(_context.t0);
+            // Not sure what exit code to use but this can mean error.
+            process.exit(255);
+
+          case 11:
+          case 'end':
+            return _context.stop();
+        }
+      }
+    }, _callee, this, [[0, 7]]);
+  }));
+
+  return function executeTest(_x) {
+    return _ref.apply(this, arguments);
+  };
+}();
+
+// Normal usage, outside of test
+
+
+exports.findOption = findOption;
+exports.parseArgv = parseArgv;
+
+var _commander = require('commander');
 
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
 
 var _jsonfile = require('jsonfile');
+
+var _url = require('url');
 
 var _tester = require('../tester');
 
@@ -38,119 +85,111 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // Ensure NODE_ENV is set
 process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 
-_commander2.default.option('-a, --app-code [code]', 'the code for your app, get from chromaticqa.com').option('-s, --script-name [name]', 'The npm script that starts your app/storybook.').option('-S, --do-not-start', "Don't attempt to start; use if your app is already running", false).option('-p, --port [port]', 'What port does your app serve?').option('--app-path [path]', 'URI path component to access Chromatic within the target app').option('--storybook-addon', 'Autodetect config for storybook addon setup', false).option('--url [url]', 'App is already running at url').option('--only [component:spec]', 'Only run a single spec').option('--auto-accept-changes', 'Accept any (non-error) changes or new specs for this build', false).option('--exit-zero-on-changes', "Use a 0 exit code if changes are detected (i.e. don't stop the build)", false).option('--debug', 'Output more debugging information', false).parse(process.argv);
-
+// This is not exactly clever but it works most of the time
 function findOption(storybookScript, shortName, longName) {
-  var parts = storybookScript.split(/[\s+|=]/);
+  var parts = storybookScript.split(/[\s='"]+/);
   var index = parts.indexOf(longName);
   if (index === -1) {
     index = parts.indexOf(shortName);
   }
   if (index === -1) {
-    throw new Error('Didn\'t find storybook option: ' + shortName + '/' + longName + ' in \'' + storybookScript + '\'');
+    return null;
   }
   return parts[index + 1];
 }
 
-var storybookOptions = {};
-if (_commander2.default.storybookAddon) {
-  storybookOptions = {
-    appPath: '/iframe.html'
+function parseArgv(argv) {
+  var commander = new _commander.Command().option('-a, --app-code [code]', 'the code for your app, get from chromaticqa.com').option('-s, --script-name [name]', 'The npm script that starts your storybook [storybook]').option('-e, --exec [command]', 'Alternatively, a full command to run to start your storybook.').option('-S, --do-not-start', "Don't attempt to start; use if your storybook is already running").option('-p, --storybook-port [port]', 'What port is your Storybook running on (auto detected from -s, if set)?').option('-u, --storybook-url [url]', 'Storybook is already running at (external) url (implies -S)').option('-d, --storybook-build-dir [dirname]', 'Provide a directory with your built storybook, implies -S').option('--ci', 'This build is running on CI, non-interactively (alternatively, pass CI=true)').option('--auto-accept-changes', 'Accept any (non-error) changes or new stories for this build').option('--exit-zero-on-changes', "Use a 0 exit code if changes are detected (i.e. don't stop the build)").option('--no-interactive', 'Do not prompt for package.json changes').option('--only [component:story]', 'Only run a single story (for debugging purposes)').option('--debug', 'Output more debugging information')
+
+  // We keep this for back compat it does nothing (ie. it is the default)
+  .option('--storybook-addon', '(deprecated) use the storybook addon').parse(argv);
+
+  var commanderOptions = {
+    config: commander.config,
+    appCode: commander.appCode || _environment.CHROMATIC_APP_CODE,
+    scriptName: commander.scriptName,
+    commandName: commander.exec,
+    noStart: !!commander.doNotStart,
+    port: commander.storybookPort,
+    url: commander.storybookUrl,
+    dirname: commander.storybookBuildDir,
+    only: commander.only,
+    fromCI: !!commander.ci,
+    autoAcceptChanges: !!commander.autoAcceptChanges,
+    exitZeroOnChanges: !!commander.exitZeroOnChanges,
+    interactive: !!commander.interactive,
+    verbose: !!commander.debug,
+    createTunnel: !commander.storybookUrl && _environment.CHROMATIC_CREATE_TUNNEL !== 'false',
+    originalArgv: argv
   };
 
   var packageJson = (0, _jsonfile.readFileSync)(_path2.default.resolve('./package.json'));
-  var scriptName = _commander2.default.scriptName || 'storybook';
-  var storybookScript = packageJson.scripts && packageJson.scripts[scriptName];
+  var commandName = commanderOptions.commandName;
+  // eslint-disable-next-line prefer-const
 
-  if (storybookScript) {
-    var port = _commander2.default.port || findOption(storybookScript, '-p', '--port');
+  var port = commanderOptions.port,
+      url = commanderOptions.url,
+      dirname = commanderOptions.dirname,
+      noStart = commanderOptions.noStart,
+      scriptName = commanderOptions.scriptName;
 
-    storybookOptions = (0, _extends3.default)({}, storybookOptions, {
-      scriptName: scriptName,
-      port: port
-    });
 
-    // eslint-disable-next-line no-console
-    console.log('Chromatic Tester: Detected \'' + scriptName + '\' script, running with inferred options:\n  --script-name=' + scriptName + ' --port=' + port + '\nOverride any of the above if they were inferred incorrectly.\n');
+  if (scriptName && commandName) {
+    throw new Error('Cannot use both --scriptName and --commandName');
+  }
+
+  if (url || dirname) {
+    if (scriptName || commandName) {
+      throw new Error('Cannot use ' + (scriptName ? '--scriptName' : '--exec') + ' with ' + (url ? '--storybook-url' : '--storybook-directory') + ', it implies --do-not-start');
+    }
+
+    if (url && dirname) {
+      throw new Error('Cannot use both --storybook-url and --storybook-directory');
+    }
+
+    noStart = true;
   } else {
-    // eslint-disable-next-line no-console
-    console.error('Chromatic Tester: Didn\'t find a script called \'' + scriptName + '\' in your `package.json`.\n' + 'Make sure you set the `--script-name` option to the value of the npm script that starts your storybook');
-    process.exit(255);
-  }
-}
-
-var commanderOptions = {
-  config: _commander2.default.config,
-  appCode: _commander2.default.appCode || _environment.CHROMATIC_APP_CODE,
-  scriptName: _commander2.default.scriptName,
-  noStart: _commander2.default.doNotStart,
-  port: _commander2.default.port,
-  appPath: _commander2.default.appPath,
-  url: _commander2.default.url,
-  only: _commander2.default.only,
-  autoAcceptChanges: _commander2.default.autoAcceptChanges,
-  exitZeroOnChanges: _commander2.default.exitZeroOnChanges,
-  verbose: _commander2.default.debug,
-  createTunnel: _environment.CHROMATIC_CREATE_TUNNEL !== 'false',
-  originalArgv: process.argv
-};
-
-// We want the user's options to win, but not if they are undefined!
-//   (That's what Object.assign would do)
-function combine(obj1, obj2) {
-  var ret = {};
-
-  [obj1, obj2].forEach(function (obj) {
-    (0, _keys2.default)(obj).filter(function (key) {
-      return obj[key] !== undefined;
-    }).forEach(function (key) {
-      ret[key] = obj[key];
-    });
-  });
-
-  return ret;
-}
-
-(function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
-    var commandLineOptions, exitCode;
-    return _regenerator2.default.wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            _context.prev = 0;
-            commandLineOptions = combine(storybookOptions, commanderOptions);
-            _context.next = 4;
-            return (0, _tester2.default)(commandLineOptions);
-
-          case 4:
-            exitCode = _context.sent;
-
-            process.exit(exitCode);
-            _context.next = 12;
-            break;
-
-          case 8:
-            _context.prev = 8;
-            _context.t0 = _context['catch'](0);
-
-            // eslint-disable-next-line no-console
-            console.error(_context.t0);
-            // Not sure what exit code to use but this can mean error.
-            process.exit(255);
-
-          case 12:
-          case 'end':
-            return _context.stop();
-        }
+    if (commandName) {
+      if (!port) {
+        throw new Error('You must pass a port with the --storybook-port option when using --exec.');
       }
-    }, _callee, this, [[0, 8]]);
-  }));
+    } else {
+      scriptName = scriptName || 'storybook';
+      var storybookScript = packageJson.scripts && packageJson.scripts[scriptName];
 
-  function executeTest() {
-    return _ref.apply(this, arguments);
+      if (!storybookScript) {
+        throw new Error('Chromatic Tester: Didn\'t find a script called \'' + scriptName + '\' in your `package.json`.\n' + 'Make sure you set the `--script-name` option to the value of the npm script that starts your storybook');
+      }
+
+      port = port || findOption(storybookScript, '-p', '--port');
+      if (!port) {
+        throw new Error('Didn\'t detect a port in your \'' + scriptName + '\' script. You must pass a port with the --storybook-port option.');
+      }
+
+      // eslint-disable-next-line no-console
+      console.log('Chromatic Tester: Detected \'' + scriptName + '\' script, running with inferred options:\n    --script-name=' + scriptName + ' --storybook-port=' + port + '\n  Override any of the above if they were inferred incorrectly.\n  ');
+    }
+
+    url = 'http://localhost:' + port;
   }
 
-  return executeTest;
-})()();
+  if (dirname) {
+    return (0, _extends3.default)({}, commanderOptions, { noStart: true, dirname: dirname });
+  }
+
+  var parsedUrl = new _url.URL(url);
+  var suffix = 'iframe.html';
+  if (!parsedUrl.pathname.endsWith(suffix)) {
+    if (!parsedUrl.pathname.endsWith('/')) {
+      parsedUrl.pathname += '/';
+    }
+    parsedUrl.pathname += suffix;
+  }
+
+  return (0, _extends3.default)({}, commanderOptions, { noStart: noStart, url: parsedUrl.toString(), scriptName: scriptName });
+}
+
+if (require.main === module) {
+  executeTest(process.argv);
+}
 //# sourceMappingURL=chromatic-test.js.map

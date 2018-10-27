@@ -1,15 +1,16 @@
 {
-  "name": "react-chromatic",
-  "version": "0.8.5-dev",
-  "description": "Visual Testing for React Components",
-  "browser": "./dist/client.js",
+  "name": "storybook-chromatic",
+  "version": "1.1.0",
+  "description": "Visual Testing for Storybook",
+  "browser": "./dist/assets/storybook-addon.js",
   "main": "./dist/assets/null-server.js",
   "scripts": {
     "prebuild": "rm -rf ./dist",
-    "build:bin": "../../node_modules/.bin/babel -s -d ./dist ./src -D --only 'assets,bin'",
-    "build:webpack": "../../node_modules/.bin/webpack",
-    "build": "../../node_modules/.bin/npm-run-all --serial -l build:**",
-    "dev": "../../node_modules/.bin/npm-run-all --parallel -l 'build:** -- --watch'"
+    "build:bin": "babel -s -d ./dist ./src -D --only 'assets,bin'",
+    "build:webpack": "webpack",
+    "build": "npm-run-all --serial -l build:**",
+    "prepare": "npm run build",
+    "dev": "npm-run-all --parallel -l 'build:** -- --watch'"
   },
   "bin": {
     "chromatic": "./dist/bin/chromatic.js"
@@ -20,10 +21,7 @@
     "canvas-prebuilt": "^2.0.0-alpha.14",
     "commander": "^2.9.0",
     "debug": "^3.0.1",
-    "denodeify": "^1.2.1",
-    "ejson": "^2.1.2",
-    "env-ci": "^1.5.0",
-    "es6-error": "^4.0.2",
+    "env-ci": "^2.1.0",
     "isomorphic-fetch": "^2.2.1",
     "jsdom": "^11.5.1",
     "jsonfile": "^4.0.0",
@@ -32,8 +30,8 @@
     "tree-kill": "^1.1.0"
   },
   "peerDependencies": {
-    "react": "15.x || 16.x",
-    "react-dom": "15.x || 16.x"
+    "@storybook/addons": "3.* || 4.*",
+    "@storybook/core": "3.* || 4.*"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -41,6 +39,7 @@
     "prettier-eslint": "^7.1.0",
     "tmp": "^0.0.33",
     "webpack": "^3.10.0",
+    "webpack-cli": "^3.1.1",
     "webpack-node-externals": "^1.6.0"
   }
 }
